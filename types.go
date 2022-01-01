@@ -3,6 +3,7 @@ package rsize
 import "unsafe"
 
 const word = unsafe.Sizeof(uintptr(0)) // 位长的字节数
+const typeOffsed = word*4 + 16
 
 // copy form: src/runtime/typekind.go
 const (

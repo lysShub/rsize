@@ -2,17 +2,22 @@ package main
 
 import (
 	"fmt"
-	"reflect"
 	"unsafe"
 
 	"github.com/lysShub/rsize"
 )
 
 func main() {
-	var i interface{} = [2]int{1, 2}
+	// testSlice()
+	// return
 
-	rsize.GetEfaceSize(&i)
-	reflect.TypeOf(i)
+	// var ac int = 0 (unsafe.Pointer)(unsafe.Pointer(&ac))
+	// var i interface{} = [2][2]string{{"9", "9"}, {"9", "9sfasqweras"}}
+	// var i interface{} = [][]string{{"9", "9"}, {"9", "9sfasqweras"}}
+	// var i interface{} = []string{"9", "9", "9", "9sfasqweras"}
+	// var i interface{} = [4]string{"9", "9", "9", "9sfasqweras"}
+	var i interface{} = [][]int{{1, 1, 1}, {1}}
+	fmt.Println(rsize.GetEfaceSize(&i))
 	return
 
 	var a [4]int = [4]int{3, 3, 3, 3}
@@ -52,4 +57,29 @@ func main() {
 	data2 := (*uint8)(unsafe.Pointer(uintptr(*data1Ptr) + 1))
 	fmt.Println(string([]byte{*data2}))
 
+}
+
+func testSlice() {
+	/*
+		type slice struct {
+			array unsafe.Pointer
+			len   int
+			cap   int
+		}
+	*/
+	// var i interface{} = [][]string{
+	// 	{"a", "b"},
+	// 	{"c", "d"},
+	// }
+	// var i interface{} = []string{"a", "b"}
+	var i interface{} = []int{1, 2, 3}
+
+	sliceTypePtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(&i)) + 0))
+	sliceElemTypePtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(*sliceTypePtr) + 8*4 + 16))
+
+	size := (*uintptr)(unsafe.Pointer(uintptr(*sliceTypePtr) + 0))
+	kind := (*uint8)(unsafe.Pointer(uintptr(*sliceTypePtr) + 23))
+	eKind := (*uint8)(unsafe.Pointer(uintptr(*sliceElemTypePtr) + 23))
+
+	fmt.Println(*size, *kind, *eKind)
 }

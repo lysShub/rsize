@@ -1,30 +1,82 @@
 package rsize
 
-import "unsafe"
+import (
+	"fmt"
+	"unsafe"
+)
 
-func GetEfaceSize(e *interface{}) (size int) {
-	v := (*unsafe.Pointer)(unsafe.Pointer(e))
-	return getSize(v)
+func GetEfaceSize(efacePtr *interface{}) (size int) {
+	efaceTypePtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*0))
+	efaceDataPtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*1))
 
-	// if size := originValue(v); size != 0 {
-	// 	return size
-	// } else {
-	// 	switch kind {
-	// 	case 17: // array
+	efaceKind := (*uint8)(unsafe.Pointer(uintptr(*efaceTypePtr) + 2*word + 7))
+	if size = originKind(*efaceKind); size != 0 {
+		return
+	} else {
+		dataPtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*1))
 
-	// 		v := (*myarraytype)(*v)
-	// 		fmt.Println(v)
-	// 		return 0
-	// 	case 99:
-	// 	}
-	// }
+		/*
+			kindArray
+			kindChan
+			kindFunc
+			kindInterface
+			kindMap
+			kindPtr
+			kindSlice
+			kindString
+			kindStruct
+			kindUnsafePointer
+		*/
+		switch *efaceKind {
+		case kindArray:
+			// in this case, eface._type is arraytype
+			// efaceElemTypePtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(*efaceTypePtr) + word*4 + 16))
+			// return earray(efaceDataPtr, efaceElemTypePtr)
+			return earray2(efaceDataPtr, efaceTypePtr)
+		case kindChan:
+		case kindFunc:
+		case kindInterface:
+		case kindMap:
+		case kindPtr:
+		case kindSlice:
 
-	// return 0
+			t := (*slicetype)(unsafe.Pointer(*efaceTypePtr))
+			fmt.Println(t)
+
+			efaceElemTypePtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(*efaceTypePtr) + word*4 + 16))
+			return eslice(efaceDataPtr, efaceElemTypePtr)
+		case kindString:
+		case kindStruct:
+		case kindUnsafePointer:
+		default:
+			fmt.Println(dataPtr)
+			return 0
+		}
+	}
+
+	return 0
 }
 
-// originValue
+// getArrayEfaceElemType
+//  get array element type when eface type is array
+func getArrayEfaceElemType(efaceTypePtr *unsafe.Pointer) (typ uint8) {
+	elemTypePtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(*efaceTypePtr) + word*4 + 16))
+	eArrayElemKind := (*uint8)(unsafe.Pointer(uintptr(*elemTypePtr) + (2*word + 7)))
+
+	return *eArrayElemKind
+}
+
+// size1 := (*uintptr)(unsafe.Pointer(uintptr(*etyp) + 0))
+// prtdata := (*uintptr)(unsafe.Pointer(uintptr(*etyp) + word))
+// hash := (*uint32)(unsafe.Pointer(uintptr(*etyp) + word*2))
+// tflag := (*uint8)(unsafe.Pointer(uintptr(*etyp) + word*2 + 4))
+// align := (*uint8)(unsafe.Pointer(uintptr(*etyp) + word*2 + 5))
+// fieldAlign := (*uint8)(unsafe.Pointer(uintptr(*etyp) + word*2 + 6))
+// fmt.Print(size1, prtdata, hash, tflag, align, fieldAlign)
+
+// originKind
 // 	如果类型是纯纯的“值类型”, 就返回此类型的大小, 否则返回0
-func originValue(kind uint8) (size int) {
+func originKind(kind uint8) (size int) {
 	switch kind {
 	case kindBool, kindInt8, kindUint8:
 		return 1
@@ -49,14 +101,14 @@ func getSize(vPtr *unsafe.Pointer) (size int) {
 	// 8 + 8 + 4 + 1 + 1 + 1
 	kind := (*uint8)(unsafe.Pointer(uintptr(*vPtr) + 23))
 
-	if size := originValue(*kind); size != 0 {
+	if size := originKind(*kind); size != 0 {
 		return size
 	} else {
 		switch *kind {
 		case kindArray:
 			eType := gotElemType(vPtr)
 			counts := *(*uintptr)(unsafe.Pointer(uintptr(*vPtr) + 0))
-			if eSize := originValue(eType); eSize != 0 {
+			if eSize := originKind(eType); eSize != 0 {
 				return int(counts) * eSize
 			} else {
 
@@ -64,11 +116,6 @@ func getSize(vPtr *unsafe.Pointer) (size int) {
 		}
 	}
 	return 0
-}
-
-func array(vPtr *unsafe.Pointer) (size int) {
-
-	return
 }
 
 // gotElemType 获取“数据”类型的元素的类型
