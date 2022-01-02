@@ -6,10 +6,10 @@ import (
 )
 
 func GetEfaceSize(efacePtr *interface{}) (size int) {
-	efaceTypePtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*0))
-	efaceDataPtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*1))
+	efaceTypePtr := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*0))
+	efaceDataPtr := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*1))
 
-	efaceKind := (*uint8)(unsafe.Pointer(uintptr(*efaceTypePtr) + 2*word + 7))
+	efaceKind := (*uint8)(unsafe.Pointer(uintptr(efaceTypePtr) + 2*word + 7))
 	if size = originKind(*efaceKind); size != 0 {
 		return
 	} else {
@@ -30,9 +30,7 @@ func GetEfaceSize(efacePtr *interface{}) (size int) {
 		switch *efaceKind {
 		case kindArray:
 			// in this case, eface._type is arraytype
-			// efaceElemTypePtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(*efaceTypePtr) + word*4 + 16))
-			// return earray(efaceDataPtr, efaceElemTypePtr)
-			return earray2(efaceDataPtr, efaceTypePtr)
+			return earray(efaceDataPtr, efaceTypePtr)
 		case kindChan:
 		case kindFunc:
 		case kindInterface:
@@ -40,11 +38,10 @@ func GetEfaceSize(efacePtr *interface{}) (size int) {
 		case kindPtr:
 		case kindSlice:
 
-			t := (*slicetype)(unsafe.Pointer(*efaceTypePtr))
-			fmt.Println(t)
+			// t := (*slicetype)(unsafe.Pointer(*efaceTypePtr))
+			// fmt.Println(t)
 
-			efaceElemTypePtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(*efaceTypePtr) + word*4 + 16))
-			return eslice(efaceDataPtr, efaceElemTypePtr)
+			// return eslice2(efaceDataPtr, efaceTypePtr)
 		case kindString:
 		case kindStruct:
 		case kindUnsafePointer:

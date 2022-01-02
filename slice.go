@@ -47,6 +47,53 @@ func eslice(slicePtr *unsafe.Pointer, elemTypePtr *unsafe.Pointer) (size int) {
 	return
 }
 
+func eslice2(dataPtr *unsafe.Pointer, typePtr *unsafe.Pointer) (size int) {
+
+	subElemTypePtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(*typePtr) + typeOffsed))
+	subElemKind := (*uint8)(unsafe.Pointer(uintptr(*subElemTypePtr) + (2*word + 7)))
+	sliceSize := (*uintptr)(unsafe.Pointer(uintptr(*typePtr) + 0)) //8×3
+	subSliceSize := (*int)(unsafe.Pointer(uintptr(*subElemTypePtr) + 0))
+
+	sliceCounts := (*uintptr)(unsafe.Pointer(uintptr(*dataPtr) + word*1)) // calculate len rather than cap
+
+	fmt.Println(subElemKind, sliceSize, subSliceSize)
+
+	if size = originKind(*subElemKind); size != 0 {
+		return int(*sliceCounts) * size
+	} else {
+		// must ergodic all elements
+		switch *subElemKind {
+		case kindArray:
+		case kindChan:
+		case kindFunc:
+		case kindInterface:
+		case kindMap:
+		case kindPtr:
+		case kindSlice:
+			sdataPtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(*dataPtr) + word*0))
+			for i := uintptr(0); i < *sliceCounts; i++ {
+				subDataPtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(*sdataPtr) + i*word))
+				size = size + eslice2(subDataPtr, subElemTypePtr)
+			}
+			return size
+
+		case kindString:
+			sdataPtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(*dataPtr) + word*0)) // slice having structure
+			l := *sliceCounts * 2
+			for i := uintptr(0); i < l; i = i + 2 {
+				size = size + *(*int)(unsafe.Pointer(uintptr(*sdataPtr) + (i+1)*word))
+			}
+			return size
+		case kindStruct:
+
+		case kindUnsafePointer:
+		default:
+		}
+	}
+
+	return
+}
+
 type slicetype struct {
 	typ  _type
 	elem *slicetype
