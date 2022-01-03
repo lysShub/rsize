@@ -1,7 +1,6 @@
 package rsize
 
 import (
-	"fmt"
 	"unsafe"
 )
 
@@ -9,48 +8,32 @@ func GetEfaceSize(efacePtr *interface{}) (size int) {
 	efaceTypePtr := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*0))
 	efaceDataPtr := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*1))
 
-	efaceKind := (*uint8)(unsafe.Pointer(uintptr(efaceTypePtr) + 2*word + 7))
+	return eface(efaceDataPtr, efaceTypePtr)
+}
+
+func eface(dataPtr, typePtr unsafe.Pointer) (size int) {
+	efaceKind := (*uint8)(unsafe.Pointer(uintptr(typePtr) + 2*word + 7))
 	if size = originKind(*efaceKind); size != 0 {
 		return
 	} else {
-		dataPtr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*1))
-
-		/*
-			kindArray
-			kindChan
-			kindFunc
-			kindInterface
-			kindMap
-			kindPtr
-			kindSlice
-			kindString
-			kindStruct
-			kindUnsafePointer
-		*/
 		switch *efaceKind {
 		case kindArray:
 			// in this case, eface._type is arraytype
-			return earray(efaceDataPtr, efaceTypePtr)
+			return earray(dataPtr, typePtr)
 		case kindChan:
 		case kindFunc:
 		case kindInterface:
 		case kindMap:
 		case kindPtr:
 		case kindSlice:
-
-			// t := (*slicetype)(efaceTypePtr)
-			// fmt.Println(t)
-
-			return eslice(efaceDataPtr, efaceTypePtr)
+			return eslice(dataPtr, typePtr)
 		case kindString:
 		case kindStruct:
 		case kindUnsafePointer:
 		default:
-			fmt.Println(dataPtr)
 			return 0
 		}
 	}
-
 	return 0
 }
 

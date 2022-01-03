@@ -12,7 +12,7 @@ func main() {
 	// return
 
 	// var ac int = 0 (unsafe.Pointer)(unsafe.Pointer(&ac))
-	var i interface{} = [2][2]string{{"9", "9"}, {"9", "9sfasqweras"}}
+	// var i interface{} = [2][2]string{{"9", "9"}, {"9", "9sfasqweras"}}
 	// var i interface{} = [][]string{{"9", "9"}, {"9", "9sfasqweras"}}
 	// var i interface{} = []string{"9", "9", "9", "9sfasqweras"}
 	// var i interface{} = [4]string{"9", "9", "9", "9sfasqweras"}
@@ -21,6 +21,11 @@ func main() {
 	// var i interface{} = [][]int{{1, 2, 3}, {1}}
 	// var i interface{} = [][]string{{"9", "9"}, {"9", "9sfasqweras"}}
 	// var i interface{} = [][3]string{{"9", "9", "9"}, {"9", "9", "9sfasqweras"}}
+	var i interface{} = [3][]string{
+		{"1", "2", "3"},
+		{"4", "5"},
+		{"6"},
+	}
 
 	fmt.Println(rsize.GetEfaceSize(&i))
 

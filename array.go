@@ -27,10 +27,19 @@ func earray(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 		case kindChan:
 		case kindFunc:
 		case kindInterface:
+			step := (*(*int)(unsafe.Pointer(typePtr))) / arrayLens
+			for i := 0; i < arrayLens; i++ {
+				size = size + eslice(unsafe.Add(dataPtr, uintptr(i*step)), subElemTypePtr)
+			}
+			return size
 		case kindMap:
 		case kindPtr:
 		case kindSlice:
-
+			step := (*(*int)(unsafe.Pointer(typePtr))) / arrayLens
+			for i := 0; i < arrayLens; i++ {
+				size = size + eslice(unsafe.Add(dataPtr, uintptr(i*step)), subElemTypePtr)
+			}
+			return size
 		case kindString:
 			for i := 0; i < arrayLens; i++ {
 				size = size + *(*int)(unsafe.Add(dataPtr, word+uintptr(i)*word*2))
