@@ -17,49 +17,69 @@ func main() {
 	// var i interface{} = []string{"9", "9", "9", "9sfasqweras"}
 	// var i interface{} = [4]string{"9", "9", "9", "9sfasqweras"}
 	// var i interface{} = []string{"1", "1", "1", "a1"}
-	// var i interface{} = [][]int{{1, 1, 1, 2}, {1}}
+	// var i interface{} = [][][]int{{{1, 3, 1}, {2}}, {{1}}}
+	// var i interface{} = [][]int{{1, 2, 3}, {1}}
 	// var i interface{} = [][]string{{"9", "9"}, {"9", "9sfasqweras"}}
+	// var i interface{} = [][3]string{{"9", "9", "9"}, {"9", "9", "9sfasqweras"}}
+
 	fmt.Println(rsize.GetEfaceSize(&i))
+
+	return
+	tp := *(*unsafe.Pointer)(unsafe.Pointer(&i))
+	dp := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(&i)) + 8))
+	a := (*slicetype)(unsafe.Pointer(tp))
+	fmt.Println(a)
+
+	b := (*slice)(unsafe.Pointer(dp))
+
+	sdp := (*unsafe.Pointer)(unsafe.Pointer(uintptr(dp) + 0))
+	elp1 := (*slice1)(unsafe.Pointer(uintptr(*sdp) + 0))
+	elp2 := (*slice1)(unsafe.Pointer(uintptr(*sdp) + 8*3))
+
+	fmt.Println(b, elp1, elp2)
 	return
 
-	var a [4]int = [4]int{3, 3, 3, 3}
-
-	/*
-		 加如array的struct是：
-			type Array struct {
-				data  unsafe.Pointer
-				len int64
-			}
-		 那么l应该是length
-
-	*/
-	l := (*int)(unsafe.Pointer(uintptr(unsafe.Pointer(&a)) + 8))
-	fmt.Println(*l) // 3
-
-	// data: *str1_data str1_len *str2_data str2_len
-	var b [4]string = [4]string{"abc", "bbb", "c", "d"}
-
-	// 获取第一个字符串
-	s1 := (*string)(unsafe.Pointer(uintptr(unsafe.Pointer(&b)) + 0))
-	fmt.Println(*s1)
-	// 获取第一个字符串长度长度
-	ll := (*int)(unsafe.Pointer(uintptr(unsafe.Pointer(&b)) + 8))
-	fmt.Println(*ll)
-
-	// 取第二个字符串
-	s2 := (*string)(unsafe.Pointer(uintptr(unsafe.Pointer(&b)) + 16))
-	fmt.Println(*s2)
-
-	// 获取第1个字符串第n个字符
-	data1Ptr := (*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(&b)) + 0))
-	// 第一个字符
-	data1 := (*uint8)(unsafe.Pointer(uintptr(*data1Ptr) + 0))
-	fmt.Println(string([]byte{*data1}))
-	// 第二个字符
-	data2 := (*uint8)(unsafe.Pointer(uintptr(*data1Ptr) + 1))
-	fmt.Println(string([]byte{*data2}))
-
 }
+
+type slice struct {
+	array *tslice1 //unsafe.Pointer
+	len   int
+	cap   int
+}
+
+type tslice1 struct {
+	sub1 slice1
+	sub2 slice1
+}
+
+type slice1 struct {
+	array unsafe.Pointer
+	len   int
+	cap   int
+}
+
+type slicetype struct {
+	typ  _type
+	elem *slicetype
+}
+
+type _type struct {
+	size       uintptr
+	ptrdata    uintptr // size of memory prefix holding all pointers
+	hash       uint32
+	tflag      tflag
+	align      uint8
+	fieldAlign uint8
+	kind       uint8
+	equal      func(unsafe.Pointer, unsafe.Pointer) bool
+	gcdata     *byte
+	str        nameOff
+	ptrToThis  typeOff
+}
+
+type tflag uint8
+type nameOff int32
+type typeOff int32
 
 func testSlice() {
 	/*

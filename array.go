@@ -1,20 +1,29 @@
 package rsize
 
-import "unsafe"
+import (
+	"unsafe"
+)
 
 func earray(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
-	subElemTypePtr := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(typePtr) + typeOffsed))
-	subElemKind := (*uint8)(unsafe.Pointer(uintptr(subElemTypePtr) + (2*word + 7)))
-	arraySizes := (*uintptr)(unsafe.Pointer(uintptr(typePtr) + 0))
+	subElemTypePtr := *(*unsafe.Pointer)(unsafe.Add(typePtr, typeOffsed))
+	subElemKind := (*uint8)(unsafe.Add(subElemTypePtr, 2*word+7))
 
+	arrayLens := *(*int)(unsafe.Add(typePtr, typeOffsed+word*2))
+	if arrayLens <= 0 {
+		return 0
+	}
 	if size = originKind(*subElemKind); size != 0 {
-		return int(*arraySizes)
+		return int(arrayLens)
 	} else {
 		// must ergodic all elements
 		switch *subElemKind {
 		case kindArray:
-			// [2][2]int equal [1][4]int equal [4]int
-			return earray(dataPtr, subElemTypePtr)
+			// any array nest, element has equal length
+			step := (*(*int)(unsafe.Pointer(typePtr))) / arrayLens
+			for i := 0; i < arrayLens; i++ {
+				size = size + earray(unsafe.Add(dataPtr, uintptr(i*step)), subElemTypePtr)
+			}
+			return size
 		case kindChan:
 		case kindFunc:
 		case kindInterface:
@@ -23,8 +32,8 @@ func earray(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 		case kindSlice:
 
 		case kindString:
-			for i := uintptr(1); i < *arraySizes; i = i + 2 {
-				size = size + *(*int)(unsafe.Pointer(uintptr(dataPtr) + i*word))
+			for i := 0; i < arrayLens; i++ {
+				size = size + *(*int)(unsafe.Add(dataPtr, word+uintptr(i)*word*2))
 			}
 			return size
 		case kindStruct:
@@ -36,4 +45,23 @@ func earray(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 	}
 
 	return
+}
+
+type arraytype struct {
+	typ   _type
+	elem  *arraytype1
+	slice *_type
+	len   uintptr
+}
+
+type arraytype1 struct {
+	typ   _type
+	elem  *_type
+	slice *_type
+	len   uintptr
+}
+
+type stringStruct struct {
+	str unsafe.Pointer
+	len int
 }

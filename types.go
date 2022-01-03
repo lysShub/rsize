@@ -56,12 +56,12 @@ type _type struct {
 	ptrToThis  typeOff
 }
 
-type arraytype struct {
-	typ  _type
-	elem *_type
-	// slice *_type
-	// len   uintptr
-}
+// type arraytype struct {
+// 	typ  _type
+// 	elem *_type
+// 	// slice *_type
+// 	// len   uintptr
+// }
 
 type tflag uint8
 type nameOff int32
