@@ -1,17 +1,46 @@
 package rsize
 
 import (
+	"fmt"
+	"reflect"
 	"unsafe"
 )
 
-func GetEfaceSize(efacePtr *interface{}) (size int) {
-	efaceTypePtr := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*0))
-	efaceDataPtr := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*1))
+func Size(efacePtr interface{}) (size int) {
+	// efaceTypePtr := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*0))
+	efaceTypePtr := *(*unsafe.Pointer)(unsafe.Add(unsafe.Pointer(&efacePtr), word*0))
+	// efaceDataPtr := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*1))
+	efaceDataPtr := *(*unsafe.Pointer)(unsafe.Add(unsafe.Pointer(&efacePtr), word*1))
 
 	return eface(efaceDataPtr, efaceTypePtr)
 }
 
+func Test() {
+	// var a map[int]string = map[int]string{
+	// 	1: "efsf",
+	// 	2: "ewefs",
+	// }
+
+	var l string = "dsadfsaas"
+	r := reflect.TypeOf(l)
+	c := r.String()
+	fmt.Println(c)
+
+	var a map[int]int = map[int]int{
+		1: 1,
+		2: 2,
+	}
+
+	t := reflect.TypeOf(a)
+
+	ts := t.String()
+
+	b := (*maptype)(unsafe.Pointer(&a))
+	fmt.Println(b, ts)
+}
+
 func eface(dataPtr, typePtr unsafe.Pointer) (size int) {
+
 	efaceKind := (*uint8)(unsafe.Pointer(uintptr(typePtr) + 2*word + 7))
 	if size = originKind(*efaceKind); size != 0 {
 		return
@@ -23,12 +52,14 @@ func eface(dataPtr, typePtr unsafe.Pointer) (size int) {
 		case kindChan:
 		case kindFunc:
 		case kindInterface:
-		case kindMap:
+		case kindMap, 53: // don't know why aways 53
+			return emaps(dataPtr, typePtr)
 		case kindPtr:
 		case kindSlice:
 			return eslice(dataPtr, typePtr)
 		case kindString:
 		case kindStruct:
+			return estruct(dataPtr, typePtr)
 		case kindUnsafePointer:
 		default:
 			return 0

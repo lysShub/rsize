@@ -7,7 +7,24 @@ import (
 	"github.com/lysShub/rsize"
 )
 
+type stru struct {
+	a uint8
+	b uint8
+	c uint8
+	d uint8
+	e uint8
+}
+
+type A []rsize.Structfield
+
+type slice struct {
+	array unsafe.Pointer
+	len   int
+	cap   int
+}
+
 func main() {
+
 	// testSlice()
 	// return
 
@@ -21,35 +38,37 @@ func main() {
 	// var i interface{} = [][]int{{1, 2, 3}, {1}}
 	// var i interface{} = [][]string{{"9", "9"}, {"9", "9sfasqweras"}}
 	// var i interface{} = [][3]string{{"9", "9", "9"}, {"9", "9", "9sfasqweras"}}
-	var i interface{} = [3][]string{
-		{"1", "2", "3"},
-		{"4", "5"},
-		{"6"},
+	// var i interface{} = [3]int16{1, 2, 3}
+	// var i interface{} = map[int]string{1: "1", 2: "2"}
+	// var i interface{} = map[string]string{"111": "22", "333": "4444"}
+	// var i interface{} = map[uint8][]int{1: {12, 3}, 2: {423, 5}}
+	// var i interface{} = map[int][3]uint8{
+	// 	1: {1, 2, 3},
+	// 	2: {2, 2, 2},
+	// }
+	var i interface{} = stru{
+		1, 1, 99, 1, 2,
 	}
 
-	fmt.Println(rsize.GetEfaceSize(&i))
+	// var aa []stru = []stru{
+	// 	{1, 1, 99, 1, 2},
+	// 	{3, 1, 99, 1, 2},
+	// }
+	// p := *(*unsafe.Pointer)(unsafe.Add(unsafe.Pointer(&aa), 0))
+	// a := *(*uint8)(unsafe.Add(p, 0))
+	// b := *(*uint8)(unsafe.Add(p, 1))
+	// c := *(*uint8)(unsafe.Add(p, 2))
+	// d := *(*uint8)(unsafe.Add(p, 3))
+	// e := *(*uint8)(unsafe.Add(p, 4))
+	// f := *(*uint8)(unsafe.Add(p, 5))
+	// fmt.Print(a, b, c, d, e, f)
+
+	// return
+	s := rsize.Size(i)
+	fmt.Println(s)
 
 	return
-	tp := *(*unsafe.Pointer)(unsafe.Pointer(&i))
-	dp := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(&i)) + 8))
-	a := (*slicetype)(unsafe.Pointer(tp))
-	fmt.Println(a)
 
-	b := (*slice)(unsafe.Pointer(dp))
-
-	sdp := (*unsafe.Pointer)(unsafe.Pointer(uintptr(dp) + 0))
-	elp1 := (*slice1)(unsafe.Pointer(uintptr(*sdp) + 0))
-	elp2 := (*slice1)(unsafe.Pointer(uintptr(*sdp) + 8*3))
-
-	fmt.Println(b, elp1, elp2)
-	return
-
-}
-
-type slice struct {
-	array *tslice1 //unsafe.Pointer
-	len   int
-	cap   int
 }
 
 type tslice1 struct {

@@ -13,7 +13,7 @@ func earray(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 		return 0
 	}
 	if size = originKind(*subElemKind); size != 0 {
-		return int(arrayLens)
+		return int(arrayLens) * size
 	} else {
 		// must ergodic all elements
 		switch *subElemKind {
@@ -58,7 +58,7 @@ func earray(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 
 type arraytype struct {
 	typ   _type
-	elem  *arraytype1
+	elem  *_type
 	slice *_type
 	len   uintptr
 }
