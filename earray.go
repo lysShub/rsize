@@ -5,6 +5,7 @@ import (
 )
 
 func earray(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
+
 	subElemTypePtr := *(*unsafe.Pointer)(unsafe.Add(typePtr, typeOffsed))
 	subElemKind := (*uint8)(unsafe.Add(subElemTypePtr, 2*word+7))
 
@@ -15,11 +16,11 @@ func earray(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 	if size = originKind(*subElemKind); size != 0 {
 		return int(arrayLens) * size
 	} else {
-		// must ergodic all elements
+		// any type array, element has equal length
+		step := (*(*int)(unsafe.Pointer(typePtr))) / arrayLens
+
 		switch *subElemKind {
 		case kindArray:
-			// any array nest, element has equal length
-			step := (*(*int)(unsafe.Pointer(typePtr))) / arrayLens
 			for i := 0; i < arrayLens; i++ {
 				size = size + earray(unsafe.Add(dataPtr, uintptr(i*step)), subElemTypePtr)
 			}
@@ -27,7 +28,6 @@ func earray(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 		case kindChan:
 		case kindFunc:
 		case kindInterface:
-			step := (*(*int)(unsafe.Pointer(typePtr))) / arrayLens
 			for i := 0; i < arrayLens; i++ {
 				size = size + eslice(unsafe.Add(dataPtr, uintptr(i*step)), subElemTypePtr)
 			}
@@ -35,7 +35,6 @@ func earray(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 		case kindMap:
 		case kindPtr:
 		case kindSlice:
-			step := (*(*int)(unsafe.Pointer(typePtr))) / arrayLens
 			for i := 0; i < arrayLens; i++ {
 				size = size + eslice(unsafe.Add(dataPtr, uintptr(i*step)), subElemTypePtr)
 			}
@@ -46,7 +45,10 @@ func earray(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 			}
 			return size
 		case kindStruct:
-
+			for i := 0; i < arrayLens; i++ {
+				size = size + estruct(unsafe.Add(dataPtr, uintptr(i*step)), subElemTypePtr)
+			}
+			return size
 		case kindUnsafePointer:
 		default:
 		}

@@ -1,30 +1,26 @@
 package rsize
 
 import (
-	"fmt"
 	"unsafe"
 )
+
+// !!!! note memory alignment
 
 const structfieldOffset uintptr = 3 * word
 
 func estruct(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
-	fieldsDataPtr := (unsafe.Add(typePtr, typeOffsed+word))
-	// *(*unsafe.Pointer)
-	a := (*[]Structfield)(fieldsDataPtr)
-	fmt.Println(a)
+
+	// a := (*Structtype)(typePtr)
+	// fmt.Println(a)
 
 	fieldsLen := *(*uintptr)(unsafe.Add(typePtr, typeOffsed+word+word)) // slice's len field
+	fieldsDataPtr := *(*unsafe.Pointer)(unsafe.Add(typePtr, typeOffsed+word))
 
-	var dataOffset uintptr
+	// var dataOffset uintptr
 	for i := uintptr(0); i < fieldsLen; i++ {
 		fieldTypePtr := *(*unsafe.Pointer)(unsafe.Add(fieldsDataPtr, i*structfieldOffset+word))
-		offsetAnon := *(*uintptr)(unsafe.Add(fieldsDataPtr, i*structfieldOffset+word*2))
-
-		b := (*_type)(fieldTypePtr)
-		fmt.Println(b, offsetAnon)
-
 		fieldKind := *(*uint8)(unsafe.Add(fieldTypePtr, 2*word+7))
-		dataOffset = dataOffset + *(*uintptr)(unsafe.Add(fieldTypePtr, 0))
+		dataOffset := (*(*uintptr)(unsafe.Add(fieldsDataPtr, i*structfieldOffset+word+word))) >> 1 // offsetAnon>>1
 
 		if tsize := originKind(fieldKind); tsize != 0 {
 			size = size + tsize
@@ -48,7 +44,6 @@ func estruct(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 			case kindUnsafePointer:
 			default:
 			}
-
 		}
 	}
 	return

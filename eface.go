@@ -6,15 +6,6 @@ import (
 	"unsafe"
 )
 
-func Size(efacePtr interface{}) (size int) {
-	// efaceTypePtr := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*0))
-	efaceTypePtr := *(*unsafe.Pointer)(unsafe.Add(unsafe.Pointer(&efacePtr), word*0))
-	// efaceDataPtr := *(*unsafe.Pointer)(unsafe.Pointer(uintptr(unsafe.Pointer(efacePtr)) + word*1))
-	efaceDataPtr := *(*unsafe.Pointer)(unsafe.Add(unsafe.Pointer(&efacePtr), word*1))
-
-	return eface(efaceDataPtr, efaceTypePtr)
-}
-
 func Test() {
 	// var a map[int]string = map[int]string{
 	// 	1: "efsf",
@@ -49,15 +40,20 @@ func eface(dataPtr, typePtr unsafe.Pointer) (size int) {
 		case kindArray:
 			// in this case, eface._type is arraytype
 			return earray(dataPtr, typePtr)
-		case kindChan:
+
+		case kindChan, 50: // 不知道为啥是50, map也一样
+			return echan(dataPtr, typePtr)
+
 		case kindFunc:
 		case kindInterface:
-		case kindMap, 53: // don't know why aways 53
+		case kindMap, 53:
 			return emaps(dataPtr, typePtr)
+
 		case kindPtr:
 		case kindSlice:
 			return eslice(dataPtr, typePtr)
 		case kindString:
+			return *(*int)(unsafe.Add(dataPtr, word))
 		case kindStruct:
 			return estruct(dataPtr, typePtr)
 		case kindUnsafePointer:

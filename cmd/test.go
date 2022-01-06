@@ -12,7 +12,7 @@ type stru struct {
 	b uint8
 	c uint8
 	d uint8
-	e uint8
+	e uint64
 }
 
 type A []rsize.Structfield
@@ -46,22 +46,17 @@ func main() {
 	// 	1: {1, 2, 3},
 	// 	2: {2, 2, 2},
 	// }
-	var i interface{} = stru{
-		1, 1, 99, 1, 2,
-	}
-
-	// var aa []stru = []stru{
-	// 	{1, 1, 99, 1, 2},
-	// 	{3, 1, 99, 1, 2},
+	// var i interface{} = stru{
+	// 	1, 1, 99, 1, 2,
 	// }
-	// p := *(*unsafe.Pointer)(unsafe.Add(unsafe.Pointer(&aa), 0))
-	// a := *(*uint8)(unsafe.Add(p, 0))
-	// b := *(*uint8)(unsafe.Add(p, 1))
-	// c := *(*uint8)(unsafe.Add(p, 2))
-	// d := *(*uint8)(unsafe.Add(p, 3))
-	// e := *(*uint8)(unsafe.Add(p, 4))
-	// f := *(*uint8)(unsafe.Add(p, 5))
-	// fmt.Print(a, b, c, d, e, f)
+
+	ch := make(chan int, 3)
+	ch <- 1
+	ch <- 1
+	// ch <- 1
+	// <-ch
+	// ch <- 1
+	var i interface{} = ch
 
 	// return
 	s := rsize.Size(i)
