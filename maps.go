@@ -64,7 +64,7 @@ func emaps(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 					default:
 					}
 
-					// -----------------------
+					// ----------------------- //
 
 					switch *subValueKind {
 					case kindArray:

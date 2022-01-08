@@ -42,31 +42,53 @@ func echan(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 
 	fmt.Println(a)
 
-	/*
-		if qcount >0 {
-			if recvx > sendx {
-				next = recvx + 1 // 满的buf读取了一部分，还没有读取完成时
-			} else if recvx == sendx {
-				next = 0 // buff刚好写满, 此时两者值为0
-			} else if recvx < sendx {
-				next = 0 // e没有写满buff
-			}
-		}
-	*/
-
 	elemTypePtr := *(*unsafe.Pointer)(unsafe.Add(typePtr, typeOffsed))
 	elemKind := *(*uint8)(unsafe.Add(elemTypePtr, 2*word+7))
 
-	counts := *(*int)(unsafe.Add(dataPtr, 0))
-
-	// elemTypePtr := *(*unsafe.Pointer)(unsafe.Add(typePtr, typeOffsed))
-	fmt.Println(elemKind, counts)
-
+	counts := *(*uint)(unsafe.Add(dataPtr, 0))
 	if size = originKind(elemKind); size != 0 {
-		return size * counts
+		size = size * int(counts)
 	} else {
+		start := *(*uint)(unsafe.Add(dataPtr, word*5+8))      // recvx
+		step := uint(*(*uint16)(unsafe.Add(dataPtr, word*3))) // elemsize
+
+		subDataPtr := *(*unsafe.Pointer)(unsafe.Add(dataPtr, word*2))
+		switch elemKind {
+		case kindArray:
+			for i := uint(0); i < counts; i++ {
+				size = size + earray(unsafe.Add(subDataPtr, (start+i)*step), elemTypePtr)
+			}
+		case kindChan:
+			for i := uint(0); i < counts; i++ {
+				size = size + echan(unsafe.Add(subDataPtr, (start+i)*step), elemTypePtr)
+			}
+		case kindFunc:
+		case kindInterface:
+			for i := uint(0); i < counts; i++ {
+				size = size + eface(unsafe.Add(subDataPtr, (start+i)*step), elemTypePtr)
+			}
+		case kindMap:
+			for i := uint(0); i < counts; i++ {
+				size = size + emaps(unsafe.Add(subDataPtr, (start+i)*step), elemTypePtr)
+			}
+		case kindPtr:
+		case kindSlice:
+			for i := uint(0); i < counts; i++ {
+				size = size + eslice(unsafe.Add(subDataPtr, (start+i)*step), elemTypePtr)
+			}
+		case kindString:
+			for i := uint(0); i < counts; i++ {
+				size = size + *(*int)(unsafe.Add(subDataPtr, uintptr((start+i)*step)+word))
+			}
+		case kindStruct:
+			for i := uint(0); i < counts; i++ {
+				size = size + estruct(unsafe.Add(subDataPtr, (start+i)*step), elemTypePtr)
+			}
+		case kindUnsafePointer:
+		default:
+		}
 
 	}
 
-	return
+	return size
 }

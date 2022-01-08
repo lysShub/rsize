@@ -51,9 +51,10 @@ func main() {
 	// }
 
 	ch := make(chan int, 3)
+	ch <- 7
+	ch <- 7
 	ch <- 1
-	ch <- 1
-	// ch <- 1
+	<-ch
 	// <-ch
 	// ch <- 1
 	var i interface{} = ch

@@ -20,3 +20,21 @@ type efacetype struct {
 	_type *_type
 	data  unsafe.Pointer
 }
+
+/*
+
+switch kind {
+case kindArray:
+case kindChan:
+case kindFunc:
+case kindInterface:
+case kindMap:
+case kindPtr:
+case kindSlice:
+case kindString:
+case kindStruct:
+case kindUnsafePointer:
+default:
+}
+
+*/
