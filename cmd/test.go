@@ -33,6 +33,7 @@ func main() {
 	// var i interface{} = [][]string{{"9", "9"}, {"9", "9sfasqweras"}}
 	// var i interface{} = []string{"9", "9", "9", "9sfasqweras"}
 	// var i interface{} = [4]string{"9", "9", "9", "9sfasqweras"}
+	// var i interface{} = [3]bool{true, false, true}
 	// var i interface{} = []string{"1", "1", "1", "a1"}
 	// var i interface{} = [][][]int{{{1, 3, 1}, {2}}, {{1}}}
 	// var i interface{} = [][]int{{1, 2, 3}, {1}}
@@ -50,14 +51,18 @@ func main() {
 	// 	1, 1, 99, 1, 2,
 	// }
 
-	ch := make(chan int, 3)
-	ch <- 7
-	ch <- 7
-	ch <- 1
-	<-ch
-	// <-ch
+	i := make(chan int, 3)
+	// ch <- 7
+	// ch <- 7
 	// ch <- 1
-	var i interface{} = ch
+	// <-ch
+	// // <-ch
+	// // ch <- 1
+	// var i interface{} = ch
+
+	// var a int = 11
+	// var i interface{} = &a
+	// var i interface{} = unsafe.Pointer(&a)
 
 	// return
 	s := rsize.Size(i)

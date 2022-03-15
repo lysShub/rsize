@@ -32,36 +32,36 @@ func Test() {
 
 func eface(dataPtr, typePtr unsafe.Pointer) (size int) {
 
-	efaceKind := (*uint8)(unsafe.Pointer(uintptr(typePtr) + 2*word + 7))
-	if size = originKind(*efaceKind); size != 0 {
-		return
+	efaceKind := *(*uint8)(unsafe.Pointer(uintptr(typePtr) + 2*word + 7))
+	efaceKind = efaceKind & kindMask
+	if tsize := originKind(efaceKind); tsize != 0 {
+		size = tsize
 	} else {
-		switch *efaceKind {
+		switch efaceKind {
 		case kindArray:
 			// in this case, eface._type is arraytype
-			return earray(dataPtr, typePtr)
-
-		case kindChan, 50: // 不知道为啥是50, map也一样
-			return echan(dataPtr, typePtr)
-
+			size = earray(dataPtr, typePtr)
+		case kindChan:
+			size = echan(dataPtr, typePtr)
 		case kindFunc:
 		case kindInterface:
-		case kindMap, 53:
-			return emaps(dataPtr, typePtr)
-
+			size = eface(dataPtr, typePtr)
+		case kindMap:
+			size = emaps(dataPtr, typePtr)
 		case kindPtr:
+			size = eptrs(dataPtr, typePtr)
 		case kindSlice:
-			return eslice(dataPtr, typePtr)
+			size = eslice(dataPtr, typePtr)
 		case kindString:
-			return *(*int)(unsafe.Add(dataPtr, word))
+			size = *(*int)(unsafe.Add(dataPtr, word))
 		case kindStruct:
-			return estruct(dataPtr, typePtr)
+			size = estruct(dataPtr, typePtr)
 		case kindUnsafePointer:
+			size = eunptr(dataPtr, typePtr)
 		default:
-			return 0
 		}
 	}
-	return 0
+	return size
 }
 
 // getArrayEfaceElemType
@@ -80,27 +80,6 @@ func getArrayEfaceElemType(efaceTypePtr *unsafe.Pointer) (typ uint8) {
 // align := (*uint8)(unsafe.Pointer(uintptr(*etyp) + word*2 + 5))
 // fieldAlign := (*uint8)(unsafe.Pointer(uintptr(*etyp) + word*2 + 6))
 // fmt.Print(size1, prtdata, hash, tflag, align, fieldAlign)
-
-// originKind
-// 	如果类型是纯纯的“值类型”, 就返回此类型的大小, 否则返回0
-func originKind(kind uint8) (size int) {
-	switch kind {
-	case kindBool, kindInt8, kindUint8:
-		return 1
-	case kindInt16, kindUint16:
-		return 2
-	case kindInt32, kindUint32, kindFloat32:
-		return 4
-	case kindInt64, kindUint64, kindFloat64, kindComplex64, kindFunc:
-		return 8
-	case kindComplex128:
-		return 16
-	case kindInt, kindUint:
-		return int(word)
-	default:
-		return 0
-	}
-}
 
 // getSize 根据_type获取数据类型, t是_type的指针
 //  如果是确定大小的数据, size将不为0

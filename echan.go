@@ -5,45 +5,13 @@ import (
 	"unsafe"
 )
 
-type chantype struct {
-	typ  _type
-	elem *_type
-	dir  uintptr
-}
-
-type hchan struct {
-	qcount   uint           // total data in the queue
-	dataqsiz uint           // size of the circular queue
-	buf      unsafe.Pointer // points to an array of dataqsiz elements
-	elemsize uint16
-	closed   uint32
-	elemtype *_type // element type
-	sendx    uint   // send index
-	recvx    uint   // receive index
-	recvq    waitq  // list of recv waiters
-	sendq    waitq  // list of send waiters
-
-	lock mutex
-}
-type waitq struct {
-	first uintptr
-	last  uintptr
-}
-type mutex struct {
-	lockRankStruct
-	key uintptr
-}
-type lockRankStruct struct {
-}
-
 func echan(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
-
-	a := *(*hchan)(dataPtr)
-
+	a := (*hchan)(dataPtr)
 	fmt.Println(a)
+	return
 
 	elemTypePtr := *(*unsafe.Pointer)(unsafe.Add(typePtr, typeOffsed))
-	elemKind := *(*uint8)(unsafe.Add(elemTypePtr, 2*word+7))
+	elemKind := (*(*uint8)(unsafe.Add(elemTypePtr, 2*word+7))) & kindMask
 
 	counts := *(*uint)(unsafe.Add(dataPtr, 0))
 	if size = originKind(elemKind); size != 0 {
@@ -72,6 +40,9 @@ func echan(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 				size = size + emaps(unsafe.Add(subDataPtr, (start+i)*step), elemTypePtr)
 			}
 		case kindPtr:
+			for i := uint(0); i < counts; i++ {
+				size = size + eptrs(unsafe.Add(subDataPtr, (start+i)*step), elemTypePtr)
+			}
 		case kindSlice:
 			for i := uint(0); i < counts; i++ {
 				size = size + eslice(unsafe.Add(subDataPtr, (start+i)*step), elemTypePtr)
@@ -85,10 +56,43 @@ func echan(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 				size = size + estruct(unsafe.Add(subDataPtr, (start+i)*step), elemTypePtr)
 			}
 		case kindUnsafePointer:
+			for i := uint(0); i < counts; i++ {
+				size = size + eunptr(unsafe.Add(subDataPtr, (start+i)*step), elemTypePtr)
+			}
 		default:
 		}
 
 	}
 
 	return size
+}
+
+type hchan struct {
+	qcount   uint           // total data in the queue
+	dataqsiz uint           // size of the circular queue
+	buf      unsafe.Pointer // points to an array of dataqsiz elements
+	elemsize uint16
+	closed   uint32
+	elemtype *_type // element type
+	sendx    uint   // send index
+	recvx    uint   // receive index
+	recvq    waitq  // list of recv waiters
+	sendq    waitq  // list of send waiters
+
+	// lock protects all fields in hchan, as well as several
+	// fields in sudogs blocked on this channel.
+	//
+	// Do not change another G's status while holding this lock
+	// (in particular, do not ready a G), as this can deadlock
+	// with stack shrinking.
+	lock mutex
+}
+
+type waitq struct {
+	first uint64
+	last  uint64
+}
+
+type mutex struct {
+	key uintptr
 }

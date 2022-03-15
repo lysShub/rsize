@@ -19,7 +19,7 @@ func estruct(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 	// var dataOffset uintptr
 	for i := uintptr(0); i < fieldsLen; i++ {
 		fieldTypePtr := *(*unsafe.Pointer)(unsafe.Add(fieldsDataPtr, i*structfieldOffset+word))
-		fieldKind := *(*uint8)(unsafe.Add(fieldTypePtr, 2*word+7))
+		fieldKind := (*(*uint8)(unsafe.Add(fieldTypePtr, 2*word+7))) & kindMask
 		dataOffset := (*(*uintptr)(unsafe.Add(fieldsDataPtr, i*structfieldOffset+word+word))) >> 1 // offsetAnon>>1
 
 		if tsize := originKind(fieldKind); tsize != 0 {
@@ -30,11 +30,14 @@ func estruct(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 			case kindArray:
 				size = size + earray(fieldDataPtr, fieldTypePtr)
 			case kindChan:
+				size = size + echan(fieldDataPtr, fieldTypePtr)
 			case kindFunc:
 			case kindInterface:
+				size = size + eface(fieldDataPtr, fieldTypePtr)
 			case kindMap:
 				size = size + emaps(fieldDataPtr, fieldTypePtr)
 			case kindPtr:
+				size = size + eptrs(fieldDataPtr, fieldTypePtr)
 			case kindSlice:
 				size = size + eslice(fieldDataPtr, fieldTypePtr)
 			case kindString:
@@ -42,6 +45,7 @@ func estruct(dataPtr unsafe.Pointer, typePtr unsafe.Pointer) (size int) {
 			case kindStruct:
 				size = size + estruct(fieldDataPtr, fieldTypePtr)
 			case kindUnsafePointer:
+				size = eunptr(fieldDataPtr, fieldTypePtr)
 			default:
 			}
 		}
